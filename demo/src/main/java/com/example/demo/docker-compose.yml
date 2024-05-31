@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.4
+    command: start-dev
+    ports:
+      - 8084:8084
+
+    environment:
+      KEYCLOAK_ADMIN: dayed
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: 5432
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: admin
+      KC_DB_URL_DATABASE: keycloak
+      KC_HTTP_PORT: 8084
+      KC_HOSTNAME_URL: http://172.29.208.1:7080/auth
+      KC_HOSTNAME_ADMIN_URL: http://172.29.208.1:7080/auth
+      KC_HTTP_RELATIVE_PATH: /auth
+    container_name: keycloak
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: admin
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dorsaf.ayed@esprit.tn
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - 8083:80
+    depends_on:
+      - postgres
+
+  monitor:
+    image: your_custom_image_with_script
+    deploy:
+      mode: global
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: C:\Users\user\Desktop\spring-security-oauth2-bff\keycloak\monitor.sh
+
+
+volumes:
+  postgres_data:
